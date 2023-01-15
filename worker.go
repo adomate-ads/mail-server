@@ -1,17 +1,21 @@
 package main
 
 import (
-	"bytes"
-	"log"
-	"time"
-
+	"encoding/json"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"log"
 )
 
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Panicf("%s: %s", msg, err)
 	}
+}
+
+type Email struct {
+	To      string
+	Subject string
+	Body    string
 }
 
 func main() {
@@ -55,10 +59,9 @@ func main() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
-			dotCount := bytes.Count(d.Body, []byte("."))
-			t := time.Duration(dotCount)
-			time.Sleep(t * time.Second)
+			email := Email{}
+			json.Unmarshal(d.Body, &email)
+			log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
 			log.Printf("Done")
 			d.Ack(false)
 		}

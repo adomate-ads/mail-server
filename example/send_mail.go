@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
-	"os"
-	"strings"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -14,6 +13,12 @@ func failOnError(err error, msg string) {
 	if err != nil {
 		log.Panicf("%s: %s", msg, err)
 	}
+}
+
+type Email struct {
+	To      string
+	Subject string
+	Body    string
 }
 
 func main() {
@@ -38,7 +43,15 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body := bodyFrom(os.Args)
+	email := &Email{
+		To:      "john.smith@example.com",
+		Subject: "Test Email",
+		Body:    "This is a test email",
+	}
+
+	body, err := json.Marshal(email)
+	failOnError(err, "Failed to marshal email")
+
 	err = ch.PublishWithContext(ctx,
 		"",     // exchange
 		q.Name, // routing key
@@ -51,14 +64,4 @@ func main() {
 		})
 	failOnError(err, "Failed to publish a message")
 	log.Printf(" [x] Sent %s", body)
-}
-
-func bodyFrom(args []string) string {
-	var s string
-	if (len(args) < 2) || os.Args[1] == "" {
-		s = "hello..."
-	} else {
-		s = strings.Join(args[1:], " ")
-	}
-	return s
 }
