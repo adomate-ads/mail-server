@@ -20,10 +20,13 @@ func Setup() {
 }
 
 func SendEmail(to string, subject string, body string) (string, string, error) {
-	message := mg.NewMessage(sender, subject, body, to)
+	message := mg.NewMessage(sender, subject, "", to)
+	message.SetHtml(body)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
+
+	message.EnableTestMode()
 
 	resp, id, err := mg.Send(ctx, message)
 	if err != nil {

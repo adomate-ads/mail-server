@@ -18,7 +18,7 @@ type Email struct {
 	Body    string
 }
 
-func main() {
+func worker() {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -60,10 +60,22 @@ func main() {
 	go func() {
 		for d := range msgs {
 			email := Email{}
-			json.Unmarshal(d.Body, &email)
-			log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
-			log.Printf("Done")
-			d.Ack(false)
+			err := json.Unmarshal(d.Body, &email)
+			if err != nil {
+				log.Println("Failed to unmarshal email")
+				err = d.Reject(false)
+				failOnError(err, "Failed to reject email")
+				continue
+			}
+			//log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
+			resp, id, err := SendEmail(email.To, email.Subject, email.Body)
+			if err != nil {
+				log.Printf("Failed to send email: %s", err)
+			} else {
+				log.Printf("%s: %s", resp, id)
+			}
+			err = d.Ack(false)
+			failOnError(err, "Failed to ack message")
 		}
 	}()
 

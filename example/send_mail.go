@@ -44,7 +44,7 @@ func main() {
 	defer cancel()
 
 	email := &Email{
-		To:      "john.smith@example.com",
+		To:      "the@raajpatel.dev",
 		Subject: "Test Email",
 		Body:    "This is a test email",
 	}
