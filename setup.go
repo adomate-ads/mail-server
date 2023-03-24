@@ -2,36 +2,36 @@ package main
 
 import (
 	"context"
+	"github.com/joho/godotenv"
 	"github.com/mailgun/mailgun-go/v4"
+	"log"
 	"os"
 	"time"
 )
 
-var domain string = "adomate.com"
-
-var private_key string = os.Getenv("EMAIL_PRIVATE_KEY")
+var domain string = "mg.adomate.ai"
 
 var mg *mailgun.MailgunImpl
 var sender string
 
 func Setup() {
-	mg = mailgun.NewMailgun(domain, private_key)
-	sender = "no-reply@adomate.com"
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	privateKey := os.Getenv("API_KEY")
+
+	mg = mailgun.NewMailgun(domain, privateKey)
+	sender = "Adomate Robot <no-reply@mg.adomate.com>"
 }
 
-func SendEmail(to string, subject string, body string) (string, string, error) {
+func SendEmail(to string, subject string, body string) (string, error) {
 	message := mg.NewMessage(sender, subject, "", to)
 	message.SetHtml(body)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	message.EnableTestMode()
-
-	resp, id, err := mg.Send(ctx, message)
-	if err != nil {
-		return "", "", err
-	}
-
-	return resp, id, nil
+	_, id, err := mg.Send(ctx, message)
+	return id, err
 }

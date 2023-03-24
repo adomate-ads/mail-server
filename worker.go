@@ -13,9 +13,9 @@ func failOnError(err error, msg string) {
 }
 
 type Email struct {
-	To      string
-	Subject string
-	Body    string
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
 }
 
 func worker() {
@@ -68,11 +68,11 @@ func worker() {
 				continue
 			}
 			//log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
-			resp, id, err := SendEmail(email.To, email.Subject, email.Body)
+			id, err := SendEmail(email.To, email.Subject, email.Body)
 			if err != nil {
-				log.Printf("Failed to send email: %s", err)
+				log.Printf("Failed to send email: \nID:%s \nERR:%s", id, err)
 			} else {
-				log.Printf("%s: %s", resp, id)
+				log.Printf("Mail sent! ID: %s", id)
 			}
 			err = d.Ack(false)
 			failOnError(err, "Failed to ack message")
