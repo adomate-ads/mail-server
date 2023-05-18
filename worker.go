@@ -69,13 +69,13 @@ func worker() {
 				continue
 			}
 			//log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
-			id, err := SendEmail(email.To, email.Subject, email.Body)
+			_, err = SendEmail(email.To, email.Subject, email.Body)
 			if err != nil {
-				log.Printf("Failed to send email: \nID:%s \nERR:%s", id, err)
+				err = d.Nack(false, true) // False means it's not a multiple ack and true means the message should be requeued
+				failOnError(err, "Failed to Nack message")
 				continue
-			} else {
-				log.Printf("Mail sent! ID: %s", id)
 			}
+
 			err = d.Ack(false)
 			failOnError(err, "Failed to ack message")
 		}
