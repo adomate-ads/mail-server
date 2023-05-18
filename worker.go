@@ -72,6 +72,7 @@ func worker() {
 			id, err := SendEmail(email.To, email.Subject, email.Body)
 			if err != nil {
 				log.Printf("Failed to send email: \nID:%s \nERR:%s", id, err)
+				continue
 			} else {
 				log.Printf("Mail sent! ID: %s", id)
 			}
