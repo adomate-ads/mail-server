@@ -71,8 +71,6 @@ func worker() {
 			//log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
 			_, err = SendEmail(email.To, email.Subject, email.Body)
 			if err != nil {
-				log.Println("Failed to send email")
-				err = d.Nack(false, true) // False means it's not a multiple ack and true means the message should be requeued
 				failOnError(err, "Failed to Nack message")
 				continue
 			}
