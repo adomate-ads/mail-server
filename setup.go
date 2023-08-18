@@ -54,7 +54,10 @@ func SendEmail(body Email) (string, error) {
 		return "", err
 	}
 	for key, value := range variables {
-		message.AddVariable(key, value)
+		err := message.AddVariable(key, value)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
