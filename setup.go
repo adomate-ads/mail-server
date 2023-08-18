@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/mailgun/mailgun-go/v4"
@@ -9,7 +10,7 @@ import (
 	"time"
 )
 
-var domain string = "mg.adomate.ai"
+var domain = "mg.adomate.ai"
 
 var mg *mailgun.MailgunImpl
 var sender string
@@ -40,12 +41,21 @@ func Setup() {
 	}
 
 	mg = mailgun.NewMailgun(domain, privateKey)
-	sender = "Adomate Robot <no-reply@mg.adomate.com>"
+	sender = "Adomate Mailman <mailman@mg.adomate.com>"
 }
 
-func SendEmail(to string, subject string, body string) (string, error) {
-	message := mg.NewMessage(sender, subject, "", to)
-	message.SetHtml(body)
+func SendEmail(body Email) (string, error) {
+	message := mg.NewMessage(sender, body.Subject, "", body.To)
+	message.SetTemplate(body.Template)
+
+	variables := make(map[string]interface{})
+	err := json.Unmarshal([]byte(body.Variables), &variables)
+	if err != nil {
+		return "", err
+	}
+	for key, value := range variables {
+		message.AddVariable(key, value)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()

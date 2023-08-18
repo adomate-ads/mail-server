@@ -14,9 +14,10 @@ func failOnError(err error, msg string) {
 }
 
 type Email struct {
-	To      string `json:"to"`
-	Subject string `json:"subject"`
-	Body    string `json:"body"`
+	To        string `json:"to"`
+	Subject   string `json:"subject"`
+	Template  string `json:"template"`
+	Variables string `json:"variables"`
 }
 
 func worker() {
@@ -69,7 +70,7 @@ func worker() {
 				continue
 			}
 			//log.Printf("Received a message:\n\tTo:%s \n\tSubject:%s \n\tBody:%s", email.To, email.Subject, email.Body)
-			_, err = SendEmail(email.To, email.Subject, email.Body)
+			_, err = SendEmail(email)
 			if err != nil {
 				failOnError(err, "Failed to Nack message")
 				continue
